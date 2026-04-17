@@ -32,6 +32,7 @@ export const useGameStore = defineStore('game', () => {
     null,
   )
   const equityComputing = ref(false)
+  const noChipsModal = ref(false)
   let equityToken = 0
   let aiToken = 0
 
@@ -46,6 +47,10 @@ export const useGameStore = defineStore('game', () => {
 
   function start() {
     if (state.value.stage !== 'end') return
+    if (me.value.chips <= 0) {
+      noChipsModal.value = true
+      return
+    }
     aiToken += 1
     // rotate dealer each hand
     state.value.dealerIndex = (state.value.dealerIndex + 1) % state.value.players.length
@@ -64,6 +69,7 @@ export const useGameStore = defineStore('game', () => {
     deck.value = []
     lastShowdown.value = null
     equity.value = null
+    noChipsModal.value = false
   }
 
   function setTableSize(n: number) {
@@ -206,6 +212,7 @@ export const useGameStore = defineStore('game', () => {
     lastShowdown,
     equity,
     equityComputing,
+    noChipsModal,
     me,
     currentBet,
     meToCall,

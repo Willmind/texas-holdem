@@ -18,6 +18,20 @@ describe('game rules (engine)', () => {
     }
   })
 
+  test('heads-up: dealer posts small blind and acts first preflop', () => {
+    const state = createInitialGameState(2)
+    state.dealerIndex = 0
+    const r = startNewHand(state, () => 0.123)
+    const s = r.state as GameState
+
+    // Heads-up: dealer is small blind (button), other is big blind.
+    expect(s.players[0].bet).toBe(s.smallBlind)
+    expect(s.players[1].bet).toBe(s.bigBlind)
+
+    // Preflop: dealer (SB) acts first heads-up.
+    expect(s.currentPlayerIndex).toBe(0)
+  })
+
   test('incomplete all-in raise does not reduce min-raise size (lastRaise)', () => {
     const state = createInitialGameState()
     // keep 3 players for controlled test

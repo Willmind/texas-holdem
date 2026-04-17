@@ -142,6 +142,14 @@ const blindTags = computed(() => {
         </section>
       </section>
 
+      <div class="modal-backdrop" v-if="game.noChipsModal" role="dialog" aria-modal="true">
+        <div class="modal">
+          <div class="modal-title">当前筹码为 0</div>
+          <div class="modal-sub">需要重新开始才能继续发牌。</div>
+          <button class="modal-btn" @click="game.resetMatch()">重新开始</button>
+        </div>
+      </div>
+
     </div>
 
     <ActionBar
@@ -361,6 +369,49 @@ const blindTags = computed(() => {
   border-radius: 999px;
   font-weight: 760;
   letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(180deg, rgba(226, 184, 90, 0.28), rgba(226, 184, 90, 0.08));
+  border: 1px solid rgba(226, 184, 90, 0.28);
+  cursor: pointer;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+}
+
+.modal {
+  width: min(360px, calc(100% - 32px));
+  border-radius: 16px;
+  padding: 14px;
+  background: linear-gradient(180deg, rgba(14, 16, 24, 0.92), rgba(8, 10, 16, 0.82));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.6);
+}
+
+.modal-title {
+  font-weight: 760;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.modal-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.modal-btn {
+  margin-top: 12px;
+  width: 100%;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 760;
   color: rgba(255, 255, 255, 0.92);
   background: linear-gradient(180deg, rgba(226, 184, 90, 0.28), rgba(226, 184, 90, 0.08));
   border: 1px solid rgba(226, 184, 90, 0.28);
