@@ -142,7 +142,7 @@ export const useGameStore = defineStore('game', () => {
 
   async function recalcEquity() {
     // Only meaningful when we have our hole cards.
-    if (me.value.holeCards.length !== 2) {
+    if (me.value.status !== 'active' || me.value.holeCards.length !== 2) {
       equity.value = null
       return
     }
@@ -174,8 +174,23 @@ export const useGameStore = defineStore('game', () => {
       if (token !== aiToken) return
       const i = state.value.currentPlayerIndex
       const p = state.value.players[i]
-      if (p.status !== 'active') return
-      await new Promise((r) => setTimeout(r, 450))
+      if (p.status !== 'active') {
+        // Defensive: skip folded/all-in players if state points at them.
+        const n = state.value.players.length
+        let next = -1
+        for (let step = 1; step <= n; step += 1) {
+          const j = (i + step) % n
+          if (state.value.players[j].status === 'active') {
+            next = j
+            break
+          }
+        }
+        if (next < 0) return
+        state.value.currentPlayerIndex = next
+        continue
+      }
+      const delay = me.value.status === 'fold' ? 40 : 450
+      await new Promise((r) => setTimeout(r, delay))
       if (token !== aiToken) return
       const action = decideAiAction(state.value, i)
       const res = applyAction(state.value, deck.value, i, action)

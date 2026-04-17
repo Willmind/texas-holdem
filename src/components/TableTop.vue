@@ -19,7 +19,7 @@ const stageLabel = computed(() => {
 
 const maxRaiseTo = computed(() => game.me.bet + game.me.chips)
 const revealAi = computed(() => game.state.stage === 'end' && game.state.communityCards.length === 5)
-const equityPct = computed(() => (game.equity ? Math.round(game.equity.equity * 1000) / 10 : null))
+const equityPct = computed(() => (game.me.status === 'active' && game.equity ? Math.round(game.equity.equity * 1000) / 10 : null))
 
 type SeatPosition = 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | 'bottomRight'
 
@@ -43,7 +43,7 @@ function seatPos(i: number): SeatPosition {
       <div class="rim" aria-hidden="true"></div>
       <div class="noise" aria-hidden="true"></div>
 
-      <div class="seats">
+      <div class="seats" :class="`n${game.state.players.length}`">
         <PlayerSeat
           v-for="(p, i) in game.state.players"
           :key="p.id"
@@ -54,7 +54,7 @@ function seatPos(i: number): SeatPosition {
         />
       </div>
 
-      <section class="center">
+      <section class="centerZone">
         <div class="board">
           <CardView v-for="i in 5" :key="i" :card="game.state.communityCards[i - 1]" :dim="!game.state.communityCards[i - 1]" />
         </div>
@@ -64,6 +64,10 @@ function seatPos(i: number): SeatPosition {
             <span class="k">底池</span>
             <span class="v">{{ game.state.pot }}</span>
           </div>
+          <div class="pill" v-if="game.me.status === 'fold'">
+            <span class="k">状态</span>
+            <span class="v">已弃牌</span>
+          </div>
           <div class="pill" v-if="equityPct !== null">
             <span class="k">赢下整桌概率（抽样）</span>
             <span class="v">
@@ -71,7 +75,7 @@ function seatPos(i: number): SeatPosition {
               <span class="sub" v-if="game.equity">({{ game.equity.mode === 'exact' ? '精确' : '抽样' }} · {{ game.equity.samples }})</span>
             </span>
           </div>
-          <div class="pill" v-else-if="game.equityComputing">
+          <div class="pill" v-else-if="game.me.status === 'active' && game.equityComputing">
             <span class="k">赢下整桌概率（抽样）</span>
             <span class="v">计算中…</span>
           </div>
@@ -158,44 +162,80 @@ function seatPos(i: number): SeatPosition {
   inset: 0;
   padding: 18px;
   pointer-events: none;
+
+  --edge: clamp(12px, 1.6vw, 18px);
+  --sideX: clamp(12px, 1.6vw, 18px);
+  --cornerY: clamp(64px, 9vh, 96px);
 }
 
 .seats :deep(.seat) {
   pointer-events: auto;
-  width: min(360px, 42vw);
+  width: clamp(200px, 24vw, 320px);
   position: absolute;
 }
 
+.seats.n6 :deep(.seat) {
+  width: clamp(190px, 22vw, 300px);
+}
+
 .seats :deep(.seat.top) {
-  top: 18px;
+  top: var(--edge);
   left: 50%;
   transform: translateX(-50%);
+}
+
+.seats.n6 :deep(.seat.top) {
+  top: var(--edge);
 }
 
 .seats :deep(.seat.topLeft) {
-  top: 96px;
-  left: 18px;
+  top: var(--cornerY);
+  left: var(--sideX);
+}
+
+.seats.n6 :deep(.seat.topLeft) {
+  top: var(--cornerY);
+  left: var(--sideX);
 }
 
 .seats :deep(.seat.topRight) {
-  top: 96px;
-  right: 18px;
+  top: var(--cornerY);
+  right: var(--sideX);
+}
+
+.seats.n6 :deep(.seat.topRight) {
+  top: var(--cornerY);
+  right: var(--sideX);
 }
 
 .seats :deep(.seat.bottom) {
-  bottom: 18px;
+  bottom: var(--edge);
   left: 50%;
   transform: translateX(-50%);
 }
 
+.seats.n6 :deep(.seat.bottom) {
+  bottom: var(--edge);
+}
+
 .seats :deep(.seat.bottomLeft) {
-  bottom: 96px;
-  left: 18px;
+  bottom: var(--cornerY);
+  left: var(--sideX);
+}
+
+.seats.n6 :deep(.seat.bottomLeft) {
+  bottom: var(--cornerY);
+  left: var(--sideX);
 }
 
 .seats :deep(.seat.bottomRight) {
-  bottom: 96px;
-  right: 18px;
+  bottom: var(--cornerY);
+  right: var(--sideX);
+}
+
+.seats.n6 :deep(.seat.bottomRight) {
+  bottom: var(--cornerY);
+  right: var(--sideX);
 }
 
 .rim {
@@ -217,11 +257,21 @@ function seatPos(i: number): SeatPosition {
   pointer-events: none;
 }
 
-.center {
+.centerZone {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(520px, 56vw, 860px);
+  max-width: calc(100% - 28px);
   display: grid;
-  place-items: center;
+  justify-items: center;
   gap: 14px;
-  min-height: 100%;
+  pointer-events: none;
+}
+
+.centerZone > * {
+  pointer-events: auto;
 }
 
 .board {
@@ -233,6 +283,9 @@ function seatPos(i: number): SeatPosition {
   background: rgba(0, 0, 0, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .status {
@@ -241,6 +294,7 @@ function seatPos(i: number): SeatPosition {
   gap: 10px;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
 }
 
 .pill {
@@ -286,7 +340,7 @@ function seatPos(i: number): SeatPosition {
 
 .showdown {
   margin-top: 12px;
-  width: min(860px, calc(100vw - 420px));
+  width: 100%;
   border-radius: 18px;
   padding: 14px;
   background: rgba(0, 0, 0, 0.24);
@@ -382,6 +436,9 @@ function seatPos(i: number): SeatPosition {
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+  .centerZone {
+    width: clamp(420px, 60vw, 720px);
   }
   .showdown {
     width: 100%;
