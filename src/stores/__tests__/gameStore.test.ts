@@ -67,11 +67,13 @@ describe('game store', () => {
     game.resetMatch()
     game.state.stage = 'end'
     expect(game.noChipsModal).toBe(false)
+    expect(game.noChipsBanner).toBe(false)
 
     game.state.players[0].chips = 0
     await nextTick()
 
-    expect(game.noChipsModal).toBe(true)
+    expect(game.noChipsModal).toBe(false)
+    expect(game.noChipsBanner).toBe(true)
   })
 })
 

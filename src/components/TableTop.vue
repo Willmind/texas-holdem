@@ -21,6 +21,13 @@ const maxRaiseTo = computed(() => game.me.bet + game.me.chips)
 const revealAi = computed(() => game.state.stage === 'end' && game.state.communityCards.length === 5)
 const equityPct = computed(() => (game.me.status === 'active' && game.equity ? Math.round(game.equity.equity * 1000) / 10 : null))
 
+const handWinnersLabel = computed(() => {
+  if (game.state.stage !== 'end') return null
+  if (!game.lastShowdown) return null
+  const names = game.lastShowdown.winners.map((i) => game.state.players[i]?.name).filter((v): v is string => Boolean(v))
+  return names.length > 0 ? names.join('、') : '—'
+})
+
 type SeatPosition = 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | 'bottomRight'
 
 type BlindTag = '庄' | '小盲' | '大盲'
@@ -93,6 +100,10 @@ const blindTags = computed(() => {
             <span class="k">底池</span>
             <span class="v">{{ game.state.pot }}</span>
           </div>
+          <div class="pill" v-if="handWinnersLabel">
+            <span class="k">本手赢家</span>
+            <span class="v">{{ handWinnersLabel }}</span>
+          </div>
           <div class="pill" v-if="game.me.status === 'fold'">
             <span class="k">状态</span>
             <span class="v">已弃牌</span>
@@ -115,32 +126,14 @@ const blindTags = computed(() => {
           <button class="start" v-if="game.state.stage === 'end'" @click="game.start()">发牌</button>
         </div>
 
-        <section class="showdown" v-if="game.lastShowdown">
-          <div class="hd">
-            <div class="t">本手结果</div>
-            <div class="s" v-if="game.lastShowdown.kind === 'fold'">（弃牌结束）</div>
-            <div class="s" v-else>（摊牌/边池）</div>
-          </div>
-
-          <div class="grid">
-            <div class="row" v-for="p in game.lastShowdown.perPlayer" :key="p.index" :data-w="game.lastShowdown.winners.includes(p.index)">
-              <div class="nm">{{ p.name }}</div>
-              <div class="st">{{ p.status }}</div>
-              <div class="hn">{{ p.handName ?? '-' }}</div>
-            </div>
-          </div>
-
-          <div class="pots" v-if="game.lastShowdown.kind === 'showdown' && game.lastShowdown.pots">
-            <div class="pt" v-for="(pot, idx) in game.lastShowdown.pots" :key="idx">
-              <div class="pt-h">边池 {{ idx + 1 }} · {{ pot.amount }}</div>
-              <div class="pt-b">
-                <div class="l">eligible: {{ pot.eligible.join(', ') }}</div>
-                <div class="l">winners: {{ pot.winners.join(', ') }} · each {{ pot.share }} <span v-if="pot.remainder > 0">(+1×{{ pot.remainder }})</span></div>
-              </div>
-            </div>
-          </div>
-        </section>
       </section>
+
+      <div class="banner-wrap" v-if="game.noChipsBanner && !game.noChipsModal">
+        <div class="banner" role="status" aria-live="polite">
+          <div class="banner-text">当前筹码为 0，已淘汰</div>
+          <button class="banner-btn" @click="game.resetMatch()">重新开始</button>
+        </div>
+      </div>
 
       <div class="modal-backdrop" v-if="game.noChipsModal" role="dialog" aria-modal="true">
         <div class="modal">
@@ -168,6 +161,7 @@ const blindTags = computed(() => {
       :stageLabel="stageLabel"
       :isYourTurn="game.state.currentPlayerIndex === 0 && game.state.stage !== 'end'"
       :pot="game.state.pot"
+      :handResult="game.lastShowdown"
       @fold="game.fold()"
       @call="game.call()"
       @raise="(to) => game.raiseTo(to)"
@@ -383,6 +377,45 @@ const blindTags = computed(() => {
   cursor: pointer;
 }
 
+.banner-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.banner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(14, 16, 24, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+}
+
+.banner-text {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.banner-btn {
+  border: none;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-weight: 760;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(180deg, rgba(226, 184, 90, 0.28), rgba(226, 184, 90, 0.08));
+  border: 1px solid rgba(226, 184, 90, 0.28);
+  cursor: pointer;
+}
+
 .modal-backdrop {
   position: absolute;
   inset: 0;
@@ -426,110 +459,12 @@ const blindTags = computed(() => {
   cursor: pointer;
 }
 
-.showdown {
-  margin-top: 12px;
-  width: 100%;
-  border-radius: 18px;
-  padding: 14px;
-  background: rgba(0, 0, 0, 0.24);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-}
-
-.hd {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.t {
-  font-family: var(--display);
-  letter-spacing: -0.01em;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.s {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.grid {
-  display: grid;
-  gap: 8px;
-}
-
-.row {
-  display: grid;
-  grid-template-columns: 140px 90px 1fr;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.row[data-w='true'] {
-  border-color: rgba(226, 184, 90, 0.38);
-  background: radial-gradient(420px 120px at 10% 10%, rgba(226, 184, 90, 0.18), rgba(255, 255, 255, 0.04));
-}
-
-.nm {
-  font-weight: 750;
-}
-
-.st {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.hn {
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.pots {
-  margin-top: 10px;
-  display: grid;
-  gap: 8px;
-}
-
-.pt {
-  border-radius: 14px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.pt-h {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.76);
-  margin-bottom: 6px;
-}
-
-.pt-b {
-  display: grid;
-  gap: 4px;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.l {
-  font-size: 13px;
-}
-
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;
   }
   .centerZone {
     width: clamp(420px, 60vw, 720px);
-  }
-  .showdown {
-    width: 100%;
   }
 }
 </style>

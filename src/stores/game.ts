@@ -33,6 +33,7 @@ export const useGameStore = defineStore('game', () => {
   )
   const equityComputing = ref(false)
   const noChipsModal = ref(false)
+  const noChipsBanner = ref(false)
   const matchWonModal = ref(false)
   let equityToken = 0
   let aiToken = 0
@@ -50,11 +51,21 @@ export const useGameStore = defineStore('game', () => {
     () => [state.value.stage, me.value.chips] as const,
     ([stage, chips]) => {
       if (stage === 'end' && chips <= 0) {
-        noChipsModal.value = true
+        noChipsBanner.value = true
         matchWonModal.value = false
         return
       }
-      if (chips > 0) noChipsModal.value = false
+      noChipsBanner.value = false
+    },
+    { immediate: true },
+  )
+
+  watch(
+    () => state.value.stage,
+    (stage) => {
+      if (stage !== 'end') return
+      // Defensive: ensure UI always has a per-hand summary even if hand ended during AI loop.
+      if (!lastShowdown.value) buildShowdownSummary()
     },
     { immediate: true },
   )
@@ -89,6 +100,7 @@ export const useGameStore = defineStore('game', () => {
     lastShowdown.value = null
     equity.value = null
     noChipsModal.value = false
+    noChipsBanner.value = false
     matchWonModal.value = false
   }
 
@@ -222,6 +234,10 @@ export const useGameStore = defineStore('game', () => {
       const res = applyAction(state.value, deck.value, i, action)
       state.value = res.state
       deck.value = res.deck
+      if (state.value.stage === 'end') {
+        buildShowdownSummary()
+        void recalcEquity()
+      }
     }
   }
 
@@ -233,6 +249,7 @@ export const useGameStore = defineStore('game', () => {
     equity,
     equityComputing,
     noChipsModal,
+    noChipsBanner,
     matchWonModal,
     me,
     currentBet,
