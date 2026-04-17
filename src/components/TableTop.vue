@@ -158,76 +158,80 @@ function seatPos(i: number): SeatPosition {
   inset: 0;
   padding: 18px;
   pointer-events: none;
+
+  --edge: clamp(12px, 1.6vw, 18px);
+  --sideX: clamp(12px, 1.6vw, 18px);
+  --cornerY: clamp(64px, 9vh, 96px);
 }
 
 .seats :deep(.seat) {
   pointer-events: auto;
-  width: clamp(220px, 32vw, 360px);
+  width: clamp(200px, 24vw, 320px);
   position: absolute;
 }
 
 .seats.n6 :deep(.seat) {
-  width: clamp(200px, 26vw, 300px);
+  width: clamp(190px, 22vw, 300px);
 }
 
 .seats :deep(.seat.top) {
-  top: 18px;
+  top: var(--edge);
   left: 50%;
   transform: translateX(-50%);
 }
 
 .seats.n6 :deep(.seat.top) {
-  top: 12px;
+  top: var(--edge);
 }
 
 .seats :deep(.seat.topLeft) {
-  top: 96px;
-  left: 18px;
+  top: var(--cornerY);
+  left: var(--sideX);
 }
 
 .seats.n6 :deep(.seat.topLeft) {
-  top: 78px;
-  left: 14px;
+  top: var(--cornerY);
+  left: var(--sideX);
 }
 
 .seats :deep(.seat.topRight) {
-  top: 96px;
-  right: 18px;
+  top: var(--cornerY);
+  right: var(--sideX);
 }
 
 .seats.n6 :deep(.seat.topRight) {
-  top: 78px;
-  right: 14px;
+  top: var(--cornerY);
+  right: var(--sideX);
 }
 
 .seats :deep(.seat.bottom) {
-  bottom: 18px;
+  bottom: var(--edge);
   left: 50%;
   transform: translateX(-50%);
 }
 
 .seats.n6 :deep(.seat.bottom) {
-  bottom: 12px;
+  bottom: var(--edge);
 }
 
 .seats :deep(.seat.bottomLeft) {
-  bottom: 96px;
-  left: 18px;
+  bottom: var(--cornerY);
+  left: var(--sideX);
 }
 
 .seats.n6 :deep(.seat.bottomLeft) {
-  bottom: 112px;
-  left: 14px;
+  bottom: var(--cornerY);
+  left: var(--sideX);
 }
 
 .seats :deep(.seat.bottomRight) {
-  bottom: 96px;
-  right: 18px;
+  bottom: var(--cornerY);
+  right: var(--sideX);
 }
 
 .seats.n6 :deep(.seat.bottomRight) {
-  bottom: 112px;
-  right: 14px;
+  bottom: var(--cornerY);
+  right: var(--sideX);
 }
 
 .rim {
@@ -428,6 +432,9 @@ function seatPos(i: number): SeatPosition {
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+  .centerZone {
+    width: clamp(420px, 60vw, 720px);
   }
   .showdown {
     width: 100%;
