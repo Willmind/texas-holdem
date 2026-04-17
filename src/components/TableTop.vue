@@ -150,6 +150,14 @@ const blindTags = computed(() => {
         </div>
       </div>
 
+      <div class="modal-backdrop" v-else-if="game.matchWonModal" role="dialog" aria-modal="true">
+        <div class="modal">
+          <div class="modal-title">你已赢下整桌</div>
+          <div class="modal-sub">其他玩家筹码为 0，比赛结束。</div>
+          <button class="modal-btn" @click="game.resetMatch()">重新开始</button>
+        </div>
+      </div>
+
     </div>
 
     <ActionBar
