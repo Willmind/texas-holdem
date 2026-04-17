@@ -1,6 +1,8 @@
 ## Texas Hold'em（德州扑克）
 
 一个基于 **Vue 3 + TypeScript + Vite** 的德州扑克项目，使用 **Pinia** 做状态编排；核心规则/结算/胜率等逻辑放在纯 TS 引擎层，方便测试与复用。
+<img width="1298" height="904" alt="image" src="https://github.com/user-attachments/assets/40396ac4-c8a3-447d-b894-73a3cf019616" />
+
 
 ## 快速开始
 
