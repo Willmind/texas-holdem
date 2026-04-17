@@ -19,7 +19,7 @@ const stageLabel = computed(() => {
 
 const maxRaiseTo = computed(() => game.me.bet + game.me.chips)
 const revealAi = computed(() => game.state.stage === 'end' && game.state.communityCards.length === 5)
-const equityPct = computed(() => (game.equity ? Math.round(game.equity.equity * 1000) / 10 : null))
+const equityPct = computed(() => (game.me.status === 'active' && game.equity ? Math.round(game.equity.equity * 1000) / 10 : null))
 
 type SeatPosition = 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | 'bottomRight'
 
@@ -64,6 +64,10 @@ function seatPos(i: number): SeatPosition {
             <span class="k">底池</span>
             <span class="v">{{ game.state.pot }}</span>
           </div>
+          <div class="pill" v-if="game.me.status === 'fold'">
+            <span class="k">状态</span>
+            <span class="v">已弃牌</span>
+          </div>
           <div class="pill" v-if="equityPct !== null">
             <span class="k">赢下整桌概率（抽样）</span>
             <span class="v">
@@ -71,7 +75,7 @@ function seatPos(i: number): SeatPosition {
               <span class="sub" v-if="game.equity">({{ game.equity.mode === 'exact' ? '精确' : '抽样' }} · {{ game.equity.samples }})</span>
             </span>
           </div>
-          <div class="pill" v-else-if="game.equityComputing">
+          <div class="pill" v-else-if="game.me.status === 'active' && game.equityComputing">
             <span class="k">赢下整桌概率（抽样）</span>
             <span class="v">计算中…</span>
           </div>
