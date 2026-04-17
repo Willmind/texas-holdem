@@ -7,9 +7,17 @@ import { estimateMultiwayEquity } from '../engine/equity'
 import { bestHandFrom } from '../engine/handEval'
 import { determineWinnersAmong } from '../engine/game'
 
+export type TableSize = 2 | 3 | 4 | 5 | 6
+
+function clampTableSize(n: number): TableSize {
+  const v = Math.max(2, Math.min(6, Math.floor(n)))
+  return v as TableSize
+}
+
 export const useGameStore = defineStore('game', () => {
   const deck = ref<Card[]>([])
-  const state = ref<GameState>(createInitialGameState())
+  const tableSize = ref<TableSize>(6)
+  const state = ref<GameState>(createInitialGameState(tableSize.value))
 
   const lastShowdown = ref<
     | null
@@ -52,10 +60,15 @@ export const useGameStore = defineStore('game', () => {
 
   function resetMatch() {
     aiToken += 1
-    state.value = createInitialGameState()
+    state.value = createInitialGameState(tableSize.value)
     deck.value = []
     lastShowdown.value = null
     equity.value = null
+  }
+
+  function setTableSize(n: number) {
+    tableSize.value = clampTableSize(n)
+    resetMatch()
   }
 
   function fold() {
@@ -174,6 +187,7 @@ export const useGameStore = defineStore('game', () => {
   return {
     deck,
     state,
+    tableSize,
     lastShowdown,
     equity,
     equityComputing,
@@ -184,6 +198,7 @@ export const useGameStore = defineStore('game', () => {
     canAct,
     start,
     resetMatch,
+    setTableSize,
     fold,
     call,
     raiseTo,

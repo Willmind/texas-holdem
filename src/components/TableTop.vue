@@ -25,7 +25,14 @@ type SeatPosition = 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | '
 
 function seatPos(i: number): SeatPosition {
   // index 0 is always bottom (you)
-  const map: SeatPosition[] = ['bottom', 'bottomLeft', 'topLeft', 'top', 'topRight', 'bottomRight']
+  const mapByN: Record<number, SeatPosition[]> = {
+    2: ['bottom', 'top'],
+    3: ['bottom', 'topLeft', 'topRight'],
+    4: ['bottom', 'bottomLeft', 'topLeft', 'topRight'],
+    5: ['bottom', 'bottomLeft', 'topLeft', 'topRight', 'bottomRight'],
+    6: ['bottom', 'bottomLeft', 'topLeft', 'top', 'topRight', 'bottomRight'],
+  }
+  const map: SeatPosition[] = mapByN[game.state.players.length] ?? mapByN[6]
   return map[i] ?? 'top'
 }
 </script>

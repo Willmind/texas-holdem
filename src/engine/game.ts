@@ -8,15 +8,17 @@ export interface NewHandResult {
   deck: Card[]
 }
 
-export function createInitialGameState(): GameState {
-  const players: Player[] = [
-    { id: 'you', name: '你', chips: 1000, bet: 0, holeCards: [], status: 'active', action: null },
-    { id: 'ai1', name: 'AI-1', chips: 1000, bet: 0, holeCards: [], status: 'active', action: null },
-    { id: 'ai2', name: 'AI-2', chips: 1000, bet: 0, holeCards: [], status: 'active', action: null },
-    { id: 'ai3', name: 'AI-3', chips: 1000, bet: 0, holeCards: [], status: 'active', action: null },
-    { id: 'ai4', name: 'AI-4', chips: 1000, bet: 0, holeCards: [], status: 'active', action: null },
-    { id: 'ai5', name: 'AI-5', chips: 1000, bet: 0, holeCards: [], status: 'active', action: null },
-  ]
+function clampPlayerCount(playerCount: number): number {
+  if (!Number.isFinite(playerCount)) return 6
+  return Math.max(2, Math.min(6, Math.floor(playerCount)))
+}
+
+export function createInitialGameState(playerCount: number = 6): GameState {
+  const n = clampPlayerCount(playerCount)
+  const players: Player[] = [{ id: 'you', name: '你', chips: 1000, bet: 0, holeCards: [], status: 'active', action: null }]
+  for (let i = 1; i < n; i += 1) {
+    players.push({ id: `ai${i}`, name: `AI-${i}`, chips: 1000, bet: 0, holeCards: [], status: 'active', action: null })
+  }
 
   return {
     stage: 'end',
@@ -24,14 +26,14 @@ export function createInitialGameState(): GameState {
     communityCards: [],
     pot: 0,
     pots: [],
-    handContributions: Array(players.length).fill(0),
+    handContributions: Array(n).fill(0),
     currentPlayerIndex: 0,
     dealerIndex: 0,
     smallBlind: 10,
     bigBlind: 20,
     lastRaise: 20,
-    actedThisStreet: Array(players.length).fill(false),
-    raiseLockedThisStreet: Array(players.length).fill(false),
+    actedThisStreet: Array(n).fill(false),
+    raiseLockedThisStreet: Array(n).fill(false),
   }
 }
 

@@ -7,6 +7,17 @@ function c(rank: number, suit: Suit): Card {
 }
 
 describe('game rules (engine)', () => {
+  test('createInitialGameState supports 2-6 players', () => {
+    for (let n = 2; n <= 6; n += 1) {
+      const s = createInitialGameState(n)
+      expect(s.players).toHaveLength(n)
+      expect(s.handContributions).toHaveLength(n)
+      expect(s.actedThisStreet).toHaveLength(n)
+      expect(s.raiseLockedThisStreet).toHaveLength(n)
+      expect(s.players[0].id).toBe('you')
+    }
+  })
+
   test('incomplete all-in raise does not reduce min-raise size (lastRaise)', () => {
     const state = createInitialGameState()
     // keep 3 players for controlled test
