@@ -18,6 +18,35 @@ describe('game rules (engine)', () => {
     }
   })
 
+  test('heads-up: dealer posts small blind and acts first preflop', () => {
+    const state = createInitialGameState(2)
+    state.dealerIndex = 0
+    const r = startNewHand(state, () => 0.123)
+    const s = r.state as GameState
+
+    // Heads-up: dealer is small blind (button), other is big blind.
+    expect(s.players[0].bet).toBe(s.smallBlind)
+    expect(s.players[1].bet).toBe(s.bigBlind)
+
+    // Preflop: dealer (SB) acts first heads-up.
+    expect(s.currentPlayerIndex).toBe(0)
+  })
+
+  test('heads-up: non-dealer acts first postflop', () => {
+    const state = createInitialGameState(2)
+    state.dealerIndex = 0
+    const r = startNewHand(state, () => 0.123)
+    const s = r.state as GameState
+
+    // Preflop: dealer completes SB, then BB checks.
+    applyAction(s, r.deck, 0, { type: 'call' })
+    applyAction(s, r.deck, 1, { type: 'call' })
+
+    expect(s.stage).toBe('flop')
+    // Postflop: first to act is left of button (non-dealer in HU).
+    expect(s.currentPlayerIndex).toBe(1)
+  })
+
   test('incomplete all-in raise does not reduce min-raise size (lastRaise)', () => {
     const state = createInitialGameState()
     // keep 3 players for controlled test
@@ -69,6 +98,42 @@ describe('game rules (engine)', () => {
     expect(s.stage).toBe('end')
     expect(s.players[2].chips).toBeGreaterThanOrEqual(0)
     expect(s.pot).toBe(potBefore)
+  })
+
+  test('showdown distributes side pots to correct eligible winners', () => {
+    const state = createInitialGameState(3)
+    const s = state as GameState
+
+    // Force a showdown directly from river via "check" actions.
+    s.stage = 'river'
+    s.communityCards = [c(2, 'H'), c(2, 'D'), c(2, 'S'), c(7, 'C'), c(9, 'D')]
+
+    // Contributions create 2 pots:
+    // main: 100*3=300 eligible 0,1,2; side: (250-100)*2=300 eligible 1,2
+    s.handContributions = [100, 250, 250]
+    s.pot = 600
+    s.players.forEach((p) => {
+      p.bet = 0
+      p.status = 'active'
+      p.chips = 0
+    })
+
+    // Ranks: AA > KK > QQ on trips-2 board
+    s.players[0].holeCards = [c(14, 'S'), c(14, 'C')]
+    s.players[1].holeCards = [c(13, 'S'), c(13, 'C')]
+    s.players[2].holeCards = [c(12, 'S'), c(12, 'C')]
+
+    s.currentPlayerIndex = 2
+    s.actedThisStreet = [true, true, false]
+    s.raiseLockedThisStreet = [false, false, false]
+
+    // Player2 checks -> round completes -> advance to showdown -> settle.
+    applyAction(s, [], 2, { type: 'call' })
+
+    expect(s.stage).toBe('end')
+    expect(s.players[0].chips).toBe(300)
+    expect(s.players[1].chips).toBe(300)
+    expect(s.players[2].chips).toBe(0)
   })
 })
 

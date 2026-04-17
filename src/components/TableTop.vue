@@ -23,6 +23,8 @@ const equityPct = computed(() => (game.me.status === 'active' && game.equity ? M
 
 type SeatPosition = 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | 'bottomRight'
 
+type BlindTag = '庄' | '小盲' | '大盲'
+
 function seatPos(i: number): SeatPosition {
   // index 0 is always bottom (you)
   const mapByN: Record<number, SeatPosition[]> = {
@@ -35,6 +37,32 @@ function seatPos(i: number): SeatPosition {
   const map: SeatPosition[] = mapByN[game.state.players.length] ?? mapByN[6]
   return map[i] ?? 'top'
 }
+
+function nextActiveFrom(fromIndex: number): number {
+  const s = game.state
+  const n = s.players.length
+  for (let step = 1; step <= n; step += 1) {
+    const i = (fromIndex + step) % n
+    if (s.players[i]?.status === 'active') return i
+  }
+  return fromIndex
+}
+
+const blindTags = computed(() => {
+  const s = game.state
+  const n = s.players.length
+  const map: Partial<Record<number, BlindTag>> = {}
+  if (n < 2) return map
+
+  const btn = ((s.dealerIndex % n) + n) % n
+  const sb = nextActiveFrom(btn)
+  const bb = nextActiveFrom(sb)
+
+  map[btn] = '庄'
+  map[sb] = '小盲'
+  map[bb] = '大盲'
+  return map
+})
 </script>
 
 <template>
@@ -49,6 +77,7 @@ function seatPos(i: number): SeatPosition {
           :key="p.id"
           :player="p"
           :position="seatPos(i)"
+          :blindTag="blindTags[i]"
           :revealCards="i === 0 ? true : revealAi && p.status !== 'fold'"
           :isTurn="game.state.currentPlayerIndex === i && game.state.stage !== 'end'"
         />
@@ -112,6 +141,22 @@ function seatPos(i: number): SeatPosition {
           </div>
         </section>
       </section>
+
+      <div class="modal-backdrop" v-if="game.noChipsModal" role="dialog" aria-modal="true">
+        <div class="modal">
+          <div class="modal-title">当前筹码为 0</div>
+          <div class="modal-sub">需要重新开始才能继续发牌。</div>
+          <button class="modal-btn" @click="game.resetMatch()">重新开始</button>
+        </div>
+      </div>
+
+      <div class="modal-backdrop" v-else-if="game.matchWonModal" role="dialog" aria-modal="true">
+        <div class="modal">
+          <div class="modal-title">你已赢下整桌</div>
+          <div class="modal-sub">其他玩家筹码为 0，比赛结束。</div>
+          <button class="modal-btn" @click="game.resetMatch()">重新开始</button>
+        </div>
+      </div>
 
     </div>
 
@@ -332,6 +377,49 @@ function seatPos(i: number): SeatPosition {
   border-radius: 999px;
   font-weight: 760;
   letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(180deg, rgba(226, 184, 90, 0.28), rgba(226, 184, 90, 0.08));
+  border: 1px solid rgba(226, 184, 90, 0.28);
+  cursor: pointer;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+}
+
+.modal {
+  width: min(360px, calc(100% - 32px));
+  border-radius: 16px;
+  padding: 14px;
+  background: linear-gradient(180deg, rgba(14, 16, 24, 0.92), rgba(8, 10, 16, 0.82));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.6);
+}
+
+.modal-title {
+  font-weight: 760;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.modal-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.modal-btn {
+  margin-top: 12px;
+  width: 100%;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 760;
   color: rgba(255, 255, 255, 0.92);
   background: linear-gradient(180deg, rgba(226, 184, 90, 0.28), rgba(226, 184, 90, 0.08));
   border: 1px solid rgba(226, 184, 90, 0.28);

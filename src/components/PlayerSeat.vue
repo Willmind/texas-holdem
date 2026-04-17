@@ -8,6 +8,7 @@ const props = defineProps<{
   position: 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | 'bottomRight'
   revealCards?: boolean
   isTurn?: boolean
+  blindTag?: '庄' | '小盲' | '大盲'
 }>()
 
 const statusLabel = computed(() => {
@@ -23,6 +24,7 @@ const statusLabel = computed(() => {
       <div class="name">
         <span class="dot" aria-hidden="true"></span>
         <span class="who">{{ player.name }}</span>
+        <span class="pos" v-if="blindTag">{{ blindTag }}</span>
         <span class="badge" :data-kind="player.status">{{ statusLabel }}</span>
       </div>
       <div class="stack">
@@ -116,6 +118,17 @@ const statusLabel = computed(() => {
   background: rgba(255, 129, 171, 0.12);
 }
 
+.pos {
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(226, 184, 90, 0.32);
+  color: rgba(226, 184, 90, 0.95);
+  background: rgba(226, 184, 90, 0.12);
+  white-space: nowrap;
+}
+
 .stack {
   display: inline-flex;
   gap: 8px;
@@ -185,6 +198,11 @@ const statusLabel = computed(() => {
   .badge {
     font-size: 11px;
     padding: 3px 7px;
+  }
+
+  .pos {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 
   .cards {

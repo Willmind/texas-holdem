@@ -59,7 +59,7 @@ export function startNewHand(prev: GameState, rng: () => number = Math.random): 
   }
 
   const button = state.dealerIndex % n
-  const sbIndex = nextActiveIndex(state, button)
+  const sbIndex = n === 2 && state.players[button].status === 'active' ? button : nextActiveIndex(state, button)
   const bbIndex = nextActiveIndex(state, sbIndex)
 
   let deck = shuffle(createDeck(), rng)

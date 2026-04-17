@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Card, GameState } from '../engine/types'
 import { applyAction, createInitialGameState, minRaiseTo, startNewHand, toCall } from '../engine/game'
 import { decideAiAction } from '../engine/ai'
@@ -32,6 +32,8 @@ export const useGameStore = defineStore('game', () => {
     null,
   )
   const equityComputing = ref(false)
+  const noChipsModal = ref(false)
+  const matchWonModal = ref(false)
   let equityToken = 0
   let aiToken = 0
 
@@ -44,8 +46,30 @@ export const useGameStore = defineStore('game', () => {
 
   const canAct = computed(() => state.value.stage !== 'end' && state.value.currentPlayerIndex === meIndex && me.value.status === 'active')
 
+  watch(
+    () => [state.value.stage, me.value.chips] as const,
+    ([stage, chips]) => {
+      if (stage === 'end' && chips <= 0) {
+        noChipsModal.value = true
+        matchWonModal.value = false
+        return
+      }
+      if (chips > 0) noChipsModal.value = false
+    },
+    { immediate: true },
+  )
+
   function start() {
     if (state.value.stage !== 'end') return
+    if (me.value.chips <= 0) {
+      noChipsModal.value = true
+      return
+    }
+    const othersHaveChips = state.value.players.some((p, idx) => idx !== meIndex && p.chips > 0)
+    if (!othersHaveChips) {
+      matchWonModal.value = true
+      return
+    }
     aiToken += 1
     // rotate dealer each hand
     state.value.dealerIndex = (state.value.dealerIndex + 1) % state.value.players.length
@@ -64,6 +88,8 @@ export const useGameStore = defineStore('game', () => {
     deck.value = []
     lastShowdown.value = null
     equity.value = null
+    noChipsModal.value = false
+    matchWonModal.value = false
   }
 
   function setTableSize(n: number) {
@@ -206,6 +232,8 @@ export const useGameStore = defineStore('game', () => {
     lastShowdown,
     equity,
     equityComputing,
+    noChipsModal,
+    matchWonModal,
     me,
     currentBet,
     meToCall,
