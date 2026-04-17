@@ -179,7 +179,6 @@ function clamp(v: number, min: number, max: number) {
 }
 
 .btn:hover:not(:disabled) {
-  transform: translateY(-1px);
   filter: brightness(1.03);
 }
 
