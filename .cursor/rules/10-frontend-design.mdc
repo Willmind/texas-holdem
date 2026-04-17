@@ -1,0 +1,22 @@
+---
+description: 前端UI审美与交互规则（黑金霓虹赌桌风格）
+globs: texas-holdem/src/**/*.{vue,css,ts}
+alwaysApply: false
+---
+
+# 前端UI规则（frontend-design）
+
+## 视觉方向（必须保持一致）
+- **风格**：黑金霓虹赌桌（felt + brass + grain + soft glow），避免“模板化SaaS渐变卡片风”。
+- **字体**：延续 `Fraunces`（display）+ `IBM Plex Sans`（body），不要引入 Inter/Roboto/Arial。
+- **颜色/Token**：颜色只通过 `src/style.css` 的 CSS variables 扩展；组件内禁止散落 hex。
+
+## 布局与组件
+- **组件职责**：
+  - 组件只负责展示和触发 action；复杂计算放到 `engine` 或 `store`。
+- **响应式**：新增 UI 必须适配 `<=960px`（延续现有断点）。
+
+## 动效与细节
+- **少而精**：优先 1–2 个高质量动效（发牌/hover/状态变更），不堆廉价动画。
+- **可访问性底线**：按钮 disabled 需明显；重要信息不只靠颜色表达；文本对比度可读。
+

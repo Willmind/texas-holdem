@@ -1,0 +1,14 @@
+---
+description: Pinia store 规范（并发令牌、AI回合、副作用）
+globs: texas-holdem/src/stores/**/*.ts
+alwaysApply: false
+---
+
+# Store 规则（src/stores）
+
+- **副作用集中**：AI 行动循环、胜率重算、延迟/计时器只允许在 store 内实现。
+- **并发安全**：
+  - 有 `await` 的循环必须有取消令牌（如 `aiToken/equityToken`），`reset/start` 必须递增令牌。
+  - 取消/提前 return 时必须恢复 UI 状态（例如 `equityComputing=false`）。
+- **只调用引擎 API**：下注/发牌/推进街道必须通过 `engine` 暴露的函数，不允许在 store 里“手改 state 字段”绕过规则。
+

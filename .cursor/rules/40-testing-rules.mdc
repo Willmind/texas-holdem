@@ -1,0 +1,16 @@
+---
+description: 测试规范（Vitest，回归用例优先级）
+globs: texas-holdem/src/**/__tests__/**/*.ts
+alwaysApply: false
+---
+
+# 测试规则（Vitest）
+
+- **回归优先**：任何修复规则/结算 bug，必须先加能失败的测试，再修实现。
+- **必须覆盖的关键场景**：
+  - 最小加注/短码全下不reopen
+  - 弃牌立刻结束分池
+  - 边池：主池赢家 ≠ 边池赢家、平分与余数分配
+  - 行动顺序：preflop/postflop 起始行动者与跳过 fold/allin
+- **测试数据**：构造卡牌时以 `(rank,suit)` 唯一，避免依赖 `code` 格式。
+

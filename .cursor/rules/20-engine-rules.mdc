@@ -1,0 +1,16 @@
+---
+description: 德州引擎规则（行动顺序/下注/分池/不变量）
+globs: texas-holdem/src/engine/**/*.ts
+alwaysApply: false
+---
+
+# Engine 规则（src/engine）
+
+- **纯函数/可测**：引擎代码不读写 localStorage、不依赖 Pinia/Vue、无 DOM。
+- **不变量（改动必须保持）**：
+  - `pot === sum(handContributions)`（如引入新字段，必须保持一致性）
+  - 结算只能在 `showdown/end` 发生；`fold` 结束必须立即分配底池并结束本手
+  - 边池：`buildPots(contrib, aliveMask)` 必须保证 **弃牌者可贡献金额但不可 eligible**
+- **加注口径**：涉及 `lastRaise/minRaise` 的改动必须配套单测覆盖（短码全下/不reopen）。
+- **错误处理**：遇到不可能状态（重复牌、负筹码、越界 index）应 `throw`，不要静默吞掉。
+
