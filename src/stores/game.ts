@@ -4,7 +4,9 @@ import type { Card, GameState } from '../engine/types'
 import { applyAction, createInitialGameState, minRaiseTo, startNewHand, toCall } from '../engine/game'
 import { decideAiAction } from '../engine/ai'
 import { estimateMultiwayEquity } from '../engine/equity'
+import type { HandCategory } from '../engine/handEval'
 import { bestHandFrom } from '../engine/handEval'
+import { rankToChar } from '../engine/cards'
 import { determineWinnersAmong } from '../engine/game'
 
 export type TableSize = 2 | 3 | 4 | 5 | 6
@@ -37,6 +39,7 @@ export const useGameStore = defineStore('game', () => {
   const matchWonModal = ref(false)
   let equityToken = 0
   let aiToken = 0
+  let equityDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
   const meIndex = 0
   const me = computed(() => state.value.players[meIndex])
@@ -81,7 +84,7 @@ export const useGameStore = defineStore('game', () => {
       matchWonModal.value = true
       return
     }
-    aiToken += 1
+    cancelAsyncWork()
     // rotate dealer each hand
     state.value.dealerIndex = (state.value.dealerIndex + 1) % state.value.players.length
     const r = startNewHand(state.value)
@@ -90,11 +93,11 @@ export const useGameStore = defineStore('game', () => {
     lastShowdown.value = null
     equity.value = null
     void maybeRunAi()
-    void recalcEquity()
+    scheduleEquityRecalc()
   }
 
   function resetMatch() {
-    aiToken += 1
+    cancelAsyncWork()
     state.value = createInitialGameState(tableSize.value)
     deck.value = []
     lastShowdown.value = null
@@ -144,20 +147,57 @@ export const useGameStore = defineStore('game', () => {
   function onAfterAction() {
     if (state.value.stage === 'end') {
       buildShowdownSummary()
-      void recalcEquity()
+      scheduleEquityRecalc()
       return
     }
-    void recalcEquity()
+    scheduleEquityRecalc()
     void maybeRunAi()
   }
 
   function buildShowdownSummary() {
     const s = state.value
+
+    function handBadgesFor(category: HandCategory, tiebreakers: number[]): string[] {
+      if (category === 1) return [rankToChar(tiebreakers[0] ?? 0)] // one pair
+      if (category === 2) return [rankToChar(tiebreakers[0] ?? 0), rankToChar(tiebreakers[1] ?? 0)] // two pair
+      if (category === 3) return [rankToChar(tiebreakers[0] ?? 0)] // trips
+      if (category === 4) return [rankToChar(tiebreakers[0] ?? 0)] // straight (high)
+      if (category === 6) return [rankToChar(tiebreakers[0] ?? 0), rankToChar(tiebreakers[1] ?? 0)] // full house
+      if (category === 7) return [rankToChar(tiebreakers[0] ?? 0)] // quads
+      if (category === 8) return [rankToChar(tiebreakers[0] ?? 0)] // straight flush
+      return []
+    }
+
+    function handDetailFor(category: HandCategory, tiebreakers: number[]): string | undefined {
+      if (category === 1) return `对${rankToChar(tiebreakers[0] ?? 0)}`
+      if (category === 2) return `${rankToChar(tiebreakers[0] ?? 0)} 和 ${rankToChar(tiebreakers[1] ?? 0)}`
+      if (category === 3) return `${rankToChar(tiebreakers[0] ?? 0)}`
+      if (category === 4) return `${rankToChar(tiebreakers[0] ?? 0)} 高`
+      if (category === 6) return `${rankToChar(tiebreakers[0] ?? 0)} 带 ${rankToChar(tiebreakers[1] ?? 0)}`
+      if (category === 7) return `${rankToChar(tiebreakers[0] ?? 0)}`
+      if (category === 8) return `${rankToChar(tiebreakers[0] ?? 0)} 高`
+      return undefined
+    }
+
     const perPlayer = s.players.map((p, index) => ({
       index,
       name: p.name,
       status: p.status,
-      handName: s.communityCards.length === 5 && p.status !== 'fold' && p.holeCards.length === 2 ? bestHandFrom([...p.holeCards, ...s.communityCards]).name : undefined,
+      handName:
+        s.communityCards.length === 5 && p.status !== 'fold' && p.holeCards.length === 2 ? bestHandFrom([...p.holeCards, ...s.communityCards]).name : undefined,
+      handDetail: (() => {
+        if (!(s.communityCards.length === 5 && p.status !== 'fold' && p.holeCards.length === 2)) return undefined
+        const r = bestHandFrom([...p.holeCards, ...s.communityCards])
+        const d = handDetailFor(r.category, r.tiebreakers)
+        if (!d) return undefined
+        return d
+      })(),
+      handBadges: (() => {
+        if (!(s.communityCards.length === 5 && p.status !== 'fold' && p.holeCards.length === 2)) return undefined
+        const r = bestHandFrom([...p.holeCards, ...s.communityCards])
+        const b = handBadgesFor(r.category, r.tiebreakers)
+        return b.length > 0 ? b : undefined
+      })(),
     }))
 
     const alive = s.players.map((p, i) => (p.status !== 'fold' ? i : -1)).filter((i) => i >= 0)
@@ -176,6 +216,26 @@ export const useGameStore = defineStore('game', () => {
 
     const topWinners = pots.length > 0 ? pots[0].winners : []
     lastShowdown.value = { kind: 'showdown', winners: topWinners, perPlayer, pots }
+  }
+
+  function cancelAsyncWork() {
+    aiToken += 1
+    equityToken += 1
+    if (equityDebounceTimer) {
+      clearTimeout(equityDebounceTimer)
+      equityDebounceTimer = null
+    }
+    equityComputing.value = false
+  }
+
+  function scheduleEquityRecalc() {
+    // Always invalidate any in-flight equity computation.
+    equityToken += 1
+    if (equityDebounceTimer) return
+    equityDebounceTimer = setTimeout(() => {
+      equityDebounceTimer = null
+      void recalcEquity()
+    }, 120)
   }
 
   async function recalcEquity() {
@@ -208,7 +268,10 @@ export const useGameStore = defineStore('game', () => {
 
   async function maybeRunAi() {
     const token = aiToken
+    let steps = 0
     while (state.value.stage !== 'end' && state.value.currentPlayerIndex !== meIndex) {
+      steps += 1
+      if (steps > 2000) return
       if (token !== aiToken) return
       const i = state.value.currentPlayerIndex
       const p = state.value.players[i]
@@ -236,7 +299,7 @@ export const useGameStore = defineStore('game', () => {
       deck.value = res.deck
       if (state.value.stage === 'end') {
         buildShowdownSummary()
-        void recalcEquity()
+        scheduleEquityRecalc()
       }
     }
   }

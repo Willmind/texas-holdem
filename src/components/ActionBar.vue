@@ -4,7 +4,7 @@ import { computed, ref, watch } from 'vue'
 type HandResult = {
   kind: 'fold' | 'showdown'
   winners: number[]
-  perPlayer: { index: number; name: string; status: string; handName?: string }[]
+  perPlayer: { index: number; name: string; status: string; handName?: string; handDetail?: string; handBadges?: string[] }[]
   pots?: { amount: number; eligible: number[]; winners: number[]; share: number; remainder: number }[]
 }
 
@@ -129,7 +129,13 @@ function clamp(v: number, min: number, max: number) {
           <div class="handResultRow" v-for="p in handResult?.perPlayer ?? []" :key="p.index" :data-w="handResult?.winners.includes(p.index)">
             <div class="nm">{{ p.name }}</div>
             <div class="st">{{ p.status }}</div>
-            <div class="hn">{{ p.handName ?? '-' }}</div>
+            <div class="hn">
+              <span class="hn-main">{{ p.handName ?? '-' }}</span>
+              <span class="hn-sub" v-if="p.handDetail">（{{ p.handDetail }}）</span>
+              <span class="badges" v-if="p.handBadges && p.handBadges.length > 0">
+                <span class="rankBadge" v-for="(b, i) in p.handBadges" :key="i">{{ b }}</span>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -137,11 +143,15 @@ function clamp(v: number, min: number, max: number) {
           <div class="pt" v-for="(potItem, idx) in handResult.pots" :key="idx">
             <div class="pt-h">边池 {{ idx + 1 }} · {{ potItem.amount }}</div>
             <div class="pt-b">
-              <div class="l">eligible: {{ potItem.eligible.join(', ') }}</div>
               <div class="l">
-                winners: {{ potItem.winners.join(', ') }} · each {{ potItem.share }}
-                <span v-if="potItem.remainder > 0">(+1×{{ potItem.remainder }})</span>
+                赢家：{{
+                  potItem.winners
+                    .map((i) => (handResult?.perPlayer ?? []).find((p) => p.index === i)?.name)
+                    .filter((v): v is string => Boolean(v))
+                    .join('、') || '—'
+                }}
               </div>
+              <div class="l">每人分到：{{ potItem.share }} <span v-if="potItem.remainder > 0">（余数 {{ potItem.remainder }}：按顺序各 +1）</span></div>
             </div>
           </div>
         </div>
@@ -407,6 +417,32 @@ function clamp(v: number, min: number, max: number) {
 
 .hn {
   color: rgba(255, 255, 255, 0.88);
+  display: inline-flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.hn-sub {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.badges {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.rankBadge {
+  font-size: 12px;
+  font-weight: 850;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: rgba(226, 184, 90, 0.95);
+  background: rgba(226, 184, 90, 0.12);
+  border: 1px solid rgba(226, 184, 90, 0.28);
 }
 
 .handResultPots {

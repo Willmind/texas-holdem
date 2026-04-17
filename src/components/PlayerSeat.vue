@@ -9,6 +9,7 @@ const props = defineProps<{
   revealCards?: boolean
   isTurn?: boolean
   blindTag?: '庄' | '小盲' | '大盲'
+  isWinner?: boolean
 }>()
 
 const statusLabel = computed(() => {
@@ -19,7 +20,7 @@ const statusLabel = computed(() => {
 </script>
 
 <template>
-  <section class="seat" :class="[position, { turn: !!isTurn }]">
+  <section class="seat" :class="[position, { turn: !!isTurn, winner: !!isWinner }]">
     <header class="meta">
       <div class="name">
         <span class="dot" aria-hidden="true"></span>
@@ -63,6 +64,11 @@ const statusLabel = computed(() => {
 .seat.turn {
   border-color: rgba(226, 184, 90, 0.55);
   box-shadow: 0 0 0 1px rgba(226, 184, 90, 0.25), 0 22px 60px rgba(0, 0, 0, 0.35);
+}
+
+.seat.winner {
+  border-color: rgba(226, 184, 90, 0.9);
+  box-shadow: 0 0 0 2px rgba(226, 184, 90, 0.35), 0 0 0 6px rgba(226, 184, 90, 0.12), 0 22px 60px rgba(0, 0, 0, 0.35);
 }
 
 .meta {
