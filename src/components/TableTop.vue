@@ -43,7 +43,7 @@ function seatPos(i: number): SeatPosition {
       <div class="rim" aria-hidden="true"></div>
       <div class="noise" aria-hidden="true"></div>
 
-      <div class="seats">
+      <div class="seats" :class="`n${game.state.players.length}`">
         <PlayerSeat
           v-for="(p, i) in game.state.players"
           :key="p.id"
@@ -54,7 +54,7 @@ function seatPos(i: number): SeatPosition {
         />
       </div>
 
-      <section class="center">
+      <section class="centerZone">
         <div class="board">
           <CardView v-for="i in 5" :key="i" :card="game.state.communityCards[i - 1]" :dim="!game.state.communityCards[i - 1]" />
         </div>
@@ -162,8 +162,12 @@ function seatPos(i: number): SeatPosition {
 
 .seats :deep(.seat) {
   pointer-events: auto;
-  width: min(360px, 42vw);
+  width: clamp(220px, 32vw, 360px);
   position: absolute;
+}
+
+.seats.n6 :deep(.seat) {
+  width: clamp(200px, 26vw, 300px);
 }
 
 .seats :deep(.seat.top) {
@@ -172,14 +176,28 @@ function seatPos(i: number): SeatPosition {
   transform: translateX(-50%);
 }
 
+.seats.n6 :deep(.seat.top) {
+  top: 12px;
+}
+
 .seats :deep(.seat.topLeft) {
   top: 96px;
   left: 18px;
 }
 
+.seats.n6 :deep(.seat.topLeft) {
+  top: 78px;
+  left: 14px;
+}
+
 .seats :deep(.seat.topRight) {
   top: 96px;
   right: 18px;
+}
+
+.seats.n6 :deep(.seat.topRight) {
+  top: 78px;
+  right: 14px;
 }
 
 .seats :deep(.seat.bottom) {
@@ -188,14 +206,28 @@ function seatPos(i: number): SeatPosition {
   transform: translateX(-50%);
 }
 
+.seats.n6 :deep(.seat.bottom) {
+  bottom: 12px;
+}
+
 .seats :deep(.seat.bottomLeft) {
   bottom: 96px;
   left: 18px;
 }
 
+.seats.n6 :deep(.seat.bottomLeft) {
+  bottom: 112px;
+  left: 14px;
+}
+
 .seats :deep(.seat.bottomRight) {
   bottom: 96px;
   right: 18px;
+}
+
+.seats.n6 :deep(.seat.bottomRight) {
+  bottom: 112px;
+  right: 14px;
 }
 
 .rim {
@@ -217,11 +249,21 @@ function seatPos(i: number): SeatPosition {
   pointer-events: none;
 }
 
-.center {
+.centerZone {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(520px, 56vw, 860px);
+  max-width: calc(100% - 28px);
   display: grid;
-  place-items: center;
+  justify-items: center;
   gap: 14px;
-  min-height: 100%;
+  pointer-events: none;
+}
+
+.centerZone > * {
+  pointer-events: auto;
 }
 
 .board {
@@ -233,6 +275,9 @@ function seatPos(i: number): SeatPosition {
   background: rgba(0, 0, 0, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 .status {
@@ -241,6 +286,7 @@ function seatPos(i: number): SeatPosition {
   gap: 10px;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
 }
 
 .pill {
@@ -286,7 +332,7 @@ function seatPos(i: number): SeatPosition {
 
 .showdown {
   margin-top: 12px;
-  width: min(860px, calc(100vw - 420px));
+  width: 100%;
   border-radius: 18px;
   padding: 14px;
   background: rgba(0, 0, 0, 0.24);
