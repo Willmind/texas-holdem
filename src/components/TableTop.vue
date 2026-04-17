@@ -23,6 +23,8 @@ const equityPct = computed(() => (game.me.status === 'active' && game.equity ? M
 
 type SeatPosition = 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | 'bottomRight'
 
+type BlindTag = '庄' | '小盲' | '大盲'
+
 function seatPos(i: number): SeatPosition {
   // index 0 is always bottom (you)
   const mapByN: Record<number, SeatPosition[]> = {
@@ -35,6 +37,32 @@ function seatPos(i: number): SeatPosition {
   const map: SeatPosition[] = mapByN[game.state.players.length] ?? mapByN[6]
   return map[i] ?? 'top'
 }
+
+function nextActiveFrom(fromIndex: number): number {
+  const s = game.state
+  const n = s.players.length
+  for (let step = 1; step <= n; step += 1) {
+    const i = (fromIndex + step) % n
+    if (s.players[i]?.status === 'active') return i
+  }
+  return fromIndex
+}
+
+const blindTags = computed(() => {
+  const s = game.state
+  const n = s.players.length
+  const map: Partial<Record<number, BlindTag>> = {}
+  if (n < 2) return map
+
+  const btn = ((s.dealerIndex % n) + n) % n
+  const sb = nextActiveFrom(btn)
+  const bb = nextActiveFrom(sb)
+
+  map[btn] = '庄'
+  map[sb] = '小盲'
+  map[bb] = '大盲'
+  return map
+})
 </script>
 
 <template>
@@ -49,6 +77,7 @@ function seatPos(i: number): SeatPosition {
           :key="p.id"
           :player="p"
           :position="seatPos(i)"
+          :blindTag="blindTags[i]"
           :revealCards="i === 0 ? true : revealAi && p.status !== 'fold'"
           :isTurn="game.state.currentPlayerIndex === i && game.state.stage !== 'end'"
         />
