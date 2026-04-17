@@ -6,6 +6,7 @@ export function decideAiAction(state: GameState, playerIndex: number, rng: () =>
   const ai = state.players[playerIndex]
   const need = toCall(state, playerIndex)
   const canCheck = need === 0
+  const currentBet = Math.max(...state.players.map((p) => p.bet))
 
   // If already all-in/folded, no action.
   if (ai.status !== 'active') return { type: 'call' }
@@ -14,10 +15,18 @@ export function decideAiAction(state: GameState, playerIndex: number, rng: () =>
     const s = preflopScore(ai.holeCards)
     if (need > 0) {
       if (s < 0.25 && rng() < 0.45) return { type: 'fold' }
-      if (s > 0.82 && ai.chips > need + state.bigBlind && rng() < 0.55) return { type: 'raise', raiseTo: minRaiseTo(state) }
+      if (s > 0.82 && ai.chips > need + state.bigBlind && rng() < 0.28) {
+        // 3bet sizing: roughly +2bb on top of open (clamped by stack by engine)
+        const target = Math.max(minRaiseTo(state), currentBet + state.bigBlind * 2)
+        return { type: 'raise', raiseTo: target }
+      }
       return { type: 'call' }
     }
-    if (s > 0.9 && ai.chips > state.bigBlind * 3 && rng() < 0.7) return { type: 'raise', raiseTo: minRaiseTo(state) }
+    if (s > 0.9 && ai.chips > state.bigBlind * 3 && rng() < 0.45) {
+      // open sizing: 2.5bb (rounded up to integer chips)
+      const openTo = Math.max(minRaiseTo(state), Math.floor(state.bigBlind * 2.5))
+      return { type: 'raise', raiseTo: openTo }
+    }
     return { type: 'call' }
   }
 
@@ -32,12 +41,11 @@ export function decideAiAction(state: GameState, playerIndex: number, rng: () =>
 
   if (need > 0) {
     if (!medium && rng() < 0.25) return { type: 'fold' }
-    if (strong && ai.chips > need + state.bigBlind && rng() < 0.45) return { type: 'raise', raiseTo: minRaiseTo(state) }
+    if (strong && ai.chips > need + state.bigBlind && rng() < 0.18) return { type: 'raise', raiseTo: minRaiseTo(state) }
     return { type: 'call' }
   }
 
-  if (strong && ai.chips > state.bigBlind * 2 && rng() < 0.55) return { type: 'raise', raiseTo: minRaiseTo(state) }
-  if (medium && rng() < 0.12 && ai.chips > state.bigBlind * 2) return { type: 'raise', raiseTo: minRaiseTo(state) }
+  if (strong && ai.chips > state.bigBlind * 2 && rng() < 0.22) return { type: 'raise', raiseTo: minRaiseTo(state) }
   return canCheck ? { type: 'call' } : { type: 'call' }
 }
 
