@@ -163,5 +163,34 @@ const statusLabel = computed(() => {
 .amt {
   font-weight: 700;
 }
+
+@media (max-width: 720px) {
+  .seat {
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .meta {
+    gap: 8px;
+  }
+
+  .name {
+    gap: 8px;
+  }
+
+  .who {
+    font-size: 13px;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 3px 7px;
+  }
+
+  .cards {
+    margin-top: 10px;
+    gap: 8px;
+  }
+}
 </style>
 
