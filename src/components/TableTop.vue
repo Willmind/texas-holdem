@@ -87,6 +87,7 @@ const blindTags = computed(() => {
           :blindTag="blindTags[i]"
           :revealCards="i === 0 ? true : revealAi && p.status !== 'fold'"
           :isTurn="game.state.currentPlayerIndex === i && game.state.stage !== 'end'"
+          :isWinner="game.state.stage === 'end' && (game.lastShowdown?.winners ?? []).includes(i)"
         />
       </div>
 
@@ -109,14 +110,14 @@ const blindTags = computed(() => {
             <span class="v">已弃牌</span>
           </div>
           <div class="pill" v-if="equityPct !== null">
-            <span class="k">赢下整桌概率（抽样）</span>
+            <span class="k">摊牌胜率（对手随机·抽样）</span>
             <span class="v">
               {{ Math.round((game.equity?.win ?? 0) * 1000) / 10 }}%
-              <span class="sub" v-if="game.equity">({{ game.equity.mode === 'exact' ? '精确' : '抽样' }} · {{ game.equity.samples }})</span>
+              <span class="sub" v-if="game.equity">({{ game.equity.mode === 'exact' ? '精确' : '抽样' }} · {{ game.equity.samples }} · 不含下注弃牌)</span>
             </span>
           </div>
           <div class="pill" v-else-if="game.me.status === 'active' && game.equityComputing">
-            <span class="k">赢下整桌概率（抽样）</span>
+            <span class="k">摊牌胜率（对手随机·抽样）</span>
             <span class="v">计算中…</span>
           </div>
           <div class="pill">
