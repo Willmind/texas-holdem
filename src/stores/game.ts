@@ -1,13 +1,20 @@
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import type { Card, GameState } from '../engine/types'
-import { applyAction, createInitialGameState, minRaiseTo, startNewHand, toCall } from '../engine/game'
+import {
+  applyAction,
+  createInitialGameState,
+  determineWinnersAmong,
+  minRaiseTo,
+  startNewHand,
+  toCall,
+  unionPotWinnerIndexes,
+} from '../engine/game'
 import { decideAiAction } from '../engine/ai'
 import { estimateMultiwayEquity } from '../engine/equity'
 import type { HandCategory } from '../engine/handEval'
 import { bestHandFrom } from '../engine/handEval'
 import { rankToChar } from '../engine/cards'
-import { determineWinnersAmong } from '../engine/game'
 
 export type TableSize = 2 | 3 | 4 | 5 | 6
 
@@ -214,8 +221,8 @@ export const useGameStore = defineStore('game', () => {
       return { amount: pot.amount, eligible: pot.eligible, winners: winnerIndexes, share, remainder }
     })
 
-    const topWinners = pots.length > 0 ? pots[0].winners : []
-    lastShowdown.value = { kind: 'showdown', winners: topWinners, perPlayer, pots }
+    const uiWinners = unionPotWinnerIndexes(pots)
+    lastShowdown.value = { kind: 'showdown', winners: uiWinners, perPlayer, pots }
   }
 
   function cancelAsyncWork() {

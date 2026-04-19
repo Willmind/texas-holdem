@@ -27,7 +27,7 @@ function enterGame() {
         </select>
       </div>
 
-      <button class="btn" @click="enterGame">进入牌桌</button>
+      <button type="button" class="btn-gold btn-gold--tile" @click="enterGame">进入牌桌</button>
     </div>
   </div>
   <TableTop v-else />
@@ -85,20 +85,10 @@ function enterGame() {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--ink);
   outline: none;
-}
-
-.btn {
-  width: 100%;
-  padding: 11px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(226, 184, 90, 0.35);
-  background: linear-gradient(180deg, rgba(226, 184, 90, 0.18), rgba(226, 184, 90, 0.08));
-  color: var(--ink);
-  font-weight: 700;
   cursor: pointer;
 }
 
-.btn:hover {
-  border-color: rgba(226, 184, 90, 0.55);
+.card .btn-gold {
+  width: 100%;
 }
 </style>

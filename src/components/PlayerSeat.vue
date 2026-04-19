@@ -17,6 +17,14 @@ const statusLabel = computed(() => {
   if (props.player.status === 'allin') return '全下'
   return '在局'
 })
+
+/** 弃牌暗化；全下/非 active 在局中会暗化，但本手赢家（常是 allin）必须保持亮牌 */
+const holeCardsDim = computed(() => {
+  const p = props.player
+  if (p.status === 'fold') return true
+  if (props.isWinner) return false
+  return p.status !== 'active'
+})
 </script>
 
 <template>
@@ -40,7 +48,7 @@ const statusLabel = computed(() => {
         :key="i"
         :card="c"
         :faceDown="!revealCards && position !== 'bottom'"
-        :dim="player.status !== 'active'"
+        :dim="holeCardsDim"
       />
     </div>
 
@@ -68,7 +76,8 @@ const statusLabel = computed(() => {
 
 .seat.winner {
   border-color: rgba(226, 184, 90, 0.9);
-  box-shadow: 0 0 0 2px rgba(226, 184, 90, 0.35), 0 0 0 6px rgba(226, 184, 90, 0.12), 0 22px 60px rgba(0, 0, 0, 0.35);
+  border-width: 2px;
+  /* box-shadow: 0 0 0 2px rgba(226, 184, 90, 0.35), 0 0 0 6px rgba(226, 184, 90, 0.12), 0 22px 60px rgba(0, 0, 0, 0.35); */
 }
 
 .meta {

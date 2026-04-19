@@ -52,3 +52,189 @@ a {
   min-height: 100svh;
 }
 
+/* 主 CTA：金 / 薄荷 / 玫红共用骨架；渐变与 hover 光色由各 class 的自定义属性提供 */
+.btn-gold,
+.btn-mint,
+.btn-rose {
+  appearance: none;
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: var(--btn-pad-y) var(--btn-pad-x);
+  border-radius: var(--btn-radius);
+  font-weight: 760;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    var(--btn-grad-top) 0%,
+    var(--btn-grad-mid) 18%,
+    var(--btn-grad-bot) 100%
+  );
+  background-clip: padding-box;
+  border: 1px solid var(--btn-border);
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  transform-origin: 50% 50%;
+  transition:
+    transform 240ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    background 240ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    border-color 240ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    box-shadow 240ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    color 240ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    opacity 180ms ease;
+}
+
+.btn-gold {
+  --btn-pad-y: 10px;
+  --btn-pad-x: 14px;
+  --btn-radius: 14px;
+  --btn-grad-top: rgba(232, 196, 112, 0.34);
+  --btn-grad-mid: rgba(226, 184, 90, 0.26);
+  --btn-grad-bot: rgba(226, 184, 90, 0.08);
+  --btn-border: rgba(226, 184, 90, 0.28);
+  --btn-border-hover: rgba(226, 184, 90);
+  --btn-hover-glow: rgba(226, 184, 90, 0.22);
+}
+
+.btn-gold--pill {
+  --btn-radius: 999px;
+}
+
+.btn-gold--tile {
+  --btn-radius: 12px;
+}
+
+.btn-gold--rounded {
+  --btn-radius: 14px;
+  --btn-pad-y: 12px;
+  --btn-pad-x: 12px;
+}
+
+.btn-gold--compact {
+  --btn-pad-y: 8px;
+  --btn-pad-x: 10px;
+}
+
+.btn-mint {
+  --btn-pad-y: 12px;
+  --btn-pad-x: 12px;
+  --btn-radius: 14px;
+  --btn-grad-top: rgba(120, 255, 220, 0.32);
+  --btn-grad-mid: rgba(71, 255, 199, 0.24);
+  --btn-grad-bot: rgba(71, 255, 199, 0.07);
+  --btn-border: rgba(71, 255, 199, 0.28);
+  --btn-border-hover: rgba(71, 255, 199, 0.55);
+  --btn-hover-glow: rgba(71, 255, 199, 0.22);
+}
+
+.btn-rose {
+  --btn-pad-y: 12px;
+  --btn-pad-x: 12px;
+  --btn-radius: 14px;
+  --btn-grad-top: rgba(255, 170, 200, 0.34);
+  --btn-grad-mid: rgba(255, 129, 171, 0.24);
+  --btn-grad-bot: rgba(255, 129, 171, 0.07);
+  --btn-border: rgba(255, 129, 171, 0.3);
+  --btn-border-hover: rgba(255, 160, 190, 0.55);
+  --btn-hover-glow: rgba(255, 129, 171, 0.24);
+}
+
+.btn-gold:hover:not(:disabled),
+.btn-mint:hover:not(:disabled),
+.btn-rose:hover:not(:disabled) {
+  transform: scale(1.02);
+  color: rgba(255, 255, 255, 0.98);
+  border-color: var(--btn-border-hover);
+  box-shadow:
+    0 3px 28px var(--btn-hover-glow),
+    0 6px 40px rgba(0, 0, 0, 0.22);
+}
+
+.btn-gold:active:not(:disabled),
+.btn-mint:active:not(:disabled),
+.btn-rose:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-gold:disabled,
+.btn-mint:disabled,
+.btn-rose:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-gold,
+  .btn-mint,
+  .btn-rose {
+    transition: background 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+  }
+
+  .btn-gold:hover:not(:disabled),
+  .btn-gold:active:not(:disabled),
+  .btn-mint:hover:not(:disabled),
+  .btn-mint:active:not(:disabled),
+  .btn-rose:hover:not(:disabled),
+  .btn-rose:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* 次要按钮：与主按钮同系的玻璃底，hover 只动背景/边框，无阴影 */
+.btn-soft {
+  appearance: none;
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.86);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  box-shadow: none;
+  transition: all 0.3s ease;
+}
+
+.btn-soft:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.btn-soft:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.btn-soft:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 弹窗标题栏关闭（方形图标按钮） */
+.btn-soft--icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+}
+
