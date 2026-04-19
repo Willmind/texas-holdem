@@ -87,9 +87,9 @@ function clamp(v: number, min: number, max: number) {
     </div>
 
     <div class="actions">
-      <button class="btn ghost" @click="emit('fold')" :disabled="!canAct">弃牌</button>
-      <button class="btn" @click="emit('call')" :disabled="!canAct">{{ callLabel }}</button>
-      <button class="btn warn" @click="emit('allin')" :disabled="!canAct">全下</button>
+      <button type="button" class="btn-soft" @click="emit('fold')" :disabled="!canAct">弃牌</button>
+      <button type="button" class="btn-mint" @click="emit('call')" :disabled="!canAct">{{ callLabel }}</button>
+      <button type="button" class="btn-rose" @click="emit('allin')" :disabled="!canAct">全下</button>
     </div>
 
     <div class="raise">
@@ -106,23 +106,23 @@ function clamp(v: number, min: number, max: number) {
         v-model.number="raiseTo"
         :disabled="raiseDisabled"
       />
-      <button class="btn gold" @click="emit('raise', raiseTo)" :disabled="raiseDisabled">确认加注</button>
+      <button type="button" class="btn-gold btn-gold--rounded" @click="emit('raise', raiseTo)" :disabled="raiseDisabled">确认加注</button>
     </div>
 
     <div class="meta">
-      <button class="mini" @click="emit('startHand')">发下一手</button>
-      <button class="mini" @click="emit('reset')">重置</button>
+      <button type="button" class="btn-soft" @click="emit('startHand')">发下一手</button>
+      <button type="button" class="btn-soft" @click="emit('reset')">重置</button>
     </div>
 
     <div class="meta">
-      <button class="mini" @click="showHandResult = true" :disabled="!handResultAvailable">本手结果</button>
+      <button type="button" class="btn-soft" @click="showHandResult = true" :disabled="!handResultAvailable">本手结果</button>
     </div>
 
     <div class="handResultOverlay" v-if="showHandResult && handResultAvailable" role="dialog" aria-modal="true">
       <div class="handResultPanel">
         <div class="handResultHd">
           <div class="handResultTitle">{{ handResultTitle }}</div>
-          <button class="handResultClose" @click="showHandResult = false" aria-label="关闭">×</button>
+          <button type="button" class="btn-soft btn-soft--icon" @click="showHandResult = false" aria-label="关闭">×</button>
         </div>
 
         <div class="handResultGrid">
@@ -170,6 +170,8 @@ function clamp(v: number, min: number, max: number) {
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(12px);
+  /* 裁掉主按钮 hover 外扩阴影，避免叠到左侧牌桌、右侧座位的牌上像「光源」 */
+  overflow: hidden;
 }
 
 .top {
@@ -237,49 +239,15 @@ function clamp(v: number, min: number, max: number) {
   gap: 10px;
 }
 
-.btn {
-  border: none;
+.actions .btn-soft,
+.actions .btn-mint,
+.actions .btn-rose {
   width: 100%;
-  padding: 12px 12px;
-  border-radius: 14px;
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 720;
-  letter-spacing: 0.01em;
-  background: linear-gradient(180deg, rgba(71, 255, 199, 0.22), rgba(71, 255, 199, 0.06));
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.36);
-  border: 1px solid rgba(71, 255, 199, 0.22);
-  cursor: pointer;
-  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
 }
 
-.btn:hover:not(:disabled) {
-  filter: brightness(1.03);
-}
-
-.btn:active:not(:disabled) {
-  transform: translateY(0px);
-  filter: brightness(0.98);
-}
-
-.btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.ghost {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.warn {
-  background: linear-gradient(180deg, rgba(255, 129, 171, 0.2), rgba(255, 129, 171, 0.06));
-  border-color: rgba(255, 129, 171, 0.24);
-}
-
-.gold {
-  background: linear-gradient(180deg, rgba(226, 184, 90, 0.28), rgba(226, 184, 90, 0.08));
-  border-color: rgba(226, 184, 90, 0.26);
+.meta .btn-soft {
+  flex: 1;
+  min-width: 0;
 }
 
 .raise {
@@ -310,25 +278,14 @@ function clamp(v: number, min: number, max: number) {
   margin: 6px 0 12px;
 }
 
+.raise .btn-gold {
+  width: 100%;
+}
+
 .meta {
   margin-top: 12px;
   display: flex;
   gap: 10px;
-}
-
-.mini {
-  flex: 1;
-  padding: 10px 10px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  color: rgba(255, 255, 255, 0.82);
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.mini:hover {
-  filter: brightness(1.06);
 }
 
 .handResultOverlay {
@@ -373,18 +330,6 @@ function clamp(v: number, min: number, max: number) {
 .handResultTitle {
   font-weight: 760;
   color: rgba(255, 255, 255, 0.92);
-}
-
-.handResultClose {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
 }
 
 .handResultGrid {

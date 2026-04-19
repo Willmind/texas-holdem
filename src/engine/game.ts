@@ -209,6 +209,15 @@ export function determineWinnersAmong(state: GameState, candidateIndexes: readon
   return { winnerIndexes: winners, ranks }
 }
 
+/** 所有在某一池分到筹码的玩家（摊牌多池时用于座位高亮 / 摘要，避免只用 pots[0] 漏标边池赢家） */
+export function unionPotWinnerIndexes(pots: readonly { winners: readonly number[] }[]): number[] {
+  const set = new Set<number>()
+  for (const pot of pots) {
+    for (const w of pot.winners) set.add(w)
+  }
+  return [...set].sort((a, b) => a - b)
+}
+
 function advanceStage(state: GameState, deck: Card[]): { state: GameState; deck: Card[] } {
   for (const p of state.players) p.bet = 0
   state.lastRaise = state.bigBlind

@@ -124,7 +124,7 @@ const blindTags = computed(() => {
             <span class="k">最高下注</span>
             <span class="v">{{ game.currentBet }}</span>
           </div>
-          <button class="start" v-if="game.state.stage === 'end'" @click="game.start()">发牌</button>
+          <button type="button" class="btn-gold btn-gold--pill" v-if="game.state.stage === 'end'" @click="game.start()">发牌</button>
         </div>
 
       </section>
@@ -132,7 +132,7 @@ const blindTags = computed(() => {
       <div class="banner-wrap" v-if="game.noChipsBanner && !game.noChipsModal">
         <div class="banner" role="status" aria-live="polite">
           <div class="banner-text">当前筹码为 0，已淘汰</div>
-          <button class="banner-btn" @click="game.resetMatch()">重新开始</button>
+          <button type="button" class="btn-gold btn-gold--pill btn-gold--compact" @click="game.resetMatch()">重新开始</button>
         </div>
       </div>
 
@@ -339,7 +339,7 @@ const blindTags = computed(() => {
 
 .pill {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   padding: 10px 12px;
   border-radius: 999px;
@@ -364,18 +364,6 @@ const blindTags = computed(() => {
   font-weight: 650;
   color: rgba(255, 255, 255, 0.7);
   margin-left: 10px;
-}
-
-.start {
-  border: none;
-  padding: 10px 14px;
-  border-radius: 999px;
-  font-weight: 760;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.92);
-  background: linear-gradient(180deg, rgba(226, 184, 90, 0.28), rgba(226, 184, 90, 0.08));
-  border: 1px solid rgba(226, 184, 90, 0.28);
-  cursor: pointer;
 }
 
 .banner-wrap {
@@ -404,17 +392,6 @@ const blindTags = computed(() => {
 .banner-text {
   font-weight: 700;
   color: rgba(255, 255, 255, 0.9);
-}
-
-.banner-btn {
-  border: none;
-  padding: 8px 10px;
-  border-radius: 999px;
-  font-weight: 760;
-  color: rgba(255, 255, 255, 0.92);
-  background: linear-gradient(180deg, rgba(226, 184, 90, 0.28), rgba(226, 184, 90, 0.08));
-  border: 1px solid rgba(226, 184, 90, 0.28);
-  cursor: pointer;
 }
 
 .modal-backdrop {
